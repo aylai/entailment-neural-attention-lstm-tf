@@ -163,11 +163,13 @@ class RNN(TensorFlowTrainable):
         else:
             with tf.name_scope("loss") as scope:
                 loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(self.get_predictions(), targets))
-                loss_summary = tf.scalar_summary("loss", loss)
+                #loss_summary = tf.scalar_summary("loss", loss)
+                loss_summary = tf.summary.scalar("loss", loss)
             with tf.name_scope("accuracy") as scope:
                 predictions = tf.to_int32(tf.argmax(self.predictions, 1))
                 correct_label = tf.to_int32(targets)
                 correct_predictions = tf.equal(predictions, correct_label)
                 accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"))
-                accuracy_summary = tf.scalar_summary("accuracy", accuracy)
+                #accuracy_summary = tf.scalar_summary("accuracy", accuracy)
+                accuracy_summary = tf.summary.scalar("accuracy", accuracy)
             return loss, loss_summary, accuracy, accuracy_summary
