@@ -45,6 +45,7 @@ if __name__ == "__main__":
                     "batch_size": {"train": args.batch_size_train, "dev": args.batch_size_dev, "test": args.batch_size_test},
                     "sequence_length": args.sequence_length,
                     "weight_decay": args.weight_decay,
+                    "settings": 'mine',
                 }
 
     for key, parameter in parameters.iteritems():

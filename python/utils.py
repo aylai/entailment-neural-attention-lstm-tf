@@ -135,8 +135,8 @@ def train(word2vec, dataset, parameters):
         train_op = optimizer.minimize(global_loss)
 
         sess.run(tf.initialize_all_variables())
-        
-        batcher = Batcher(word2vec=word2vec)
+
+        batcher = Batcher(word2vec=word2vec, settings=parameters["settings"])
         train_batches = batcher.batch_generator(dataset=dataset["train"], num_epochs=parameters["num_epochs"], batch_size=parameters["batch_size"]["train"], sequence_length=parameters["sequence_length"])
         num_step_by_epoch = int(math.ceil(len(dataset["train"]["targets"]) / parameters["batch_size"]["train"]))
         for train_step, (train_batch, epoch) in enumerate(train_batches):

@@ -2,13 +2,17 @@ import numpy as np
 import copy
 
 class Batcher(object):
-    def __init__(self, word2vec):
+    def __init__(self, word2vec, settings):
         self._premises = []
         self._hypothesis = []
         self._targets = []
         self._word2vec = word2vec
-        self._embedding_dim = len(self._word2vec["beer"])
-        self._out_of_voc_embedding = (2 * np.random.rand(self._embedding_dim) - 1) / 20
+        if settings == 'theirs':
+            self._embedding_dim = len(self._word2vec["beer"])
+            self._out_of_voc_embedding = (2 * np.random.rand(self._embedding_dim) - 1) / 20
+        elif settings == 'mine':
+            self._embedding_dim = len(self._word2vec["cat"])
+            self._out_of_voc_embedding = np.random.rand(self._embedding_dim)
         self._delimiter = self._word2vec["_"]
 
     def batch_generator(self, dataset, num_epochs, batch_size, sequence_length):
