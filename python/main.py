@@ -32,6 +32,7 @@ if __name__ == "__main__":
     parser.add_argument("--embedding_dim", type=int, default=300, help="Word2Vec dimension")
     parser.add_argument("--sequence_length", type=int, default=20, help="final length of each sequence (premise and hypothesis), padded with null-words if needed")
     parser.add_argument("--num_units", type=int, default=100, help="LSTM output dimension (k in the original paper)")
+    parser.add_argument("--prototype",action="store_true",help="activate this flag to train a small model with dev data")
     args = parser.parse_args()
 
     # PARAMETERS
@@ -55,6 +56,9 @@ if __name__ == "__main__":
 
     # MAIN
     word2vec, dataset = load_data(data_dir=args.data_dir, word2vec_path=args.word2vec_path)
+
+    if args.prototype:
+        train(word2vec=word2vec, dataset=dataset, parameters=parameters, prototype=True)
 
     if args.train:
         train(word2vec=word2vec, dataset=dataset, parameters=parameters)
