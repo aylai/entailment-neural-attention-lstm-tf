@@ -1,6 +1,6 @@
 import argparse
 import os
-from utils import load_data, train
+from utils import load_data, train, test
 
 
 dirname, filename = os.path.split(os.path.abspath(__file__))
@@ -16,6 +16,8 @@ if __name__ == "__main__":
     # ARGUMENTS
     parser = argparse.ArgumentParser()
     parser.add_argument("--train", action="store_true", help="active this flag to train the model")
+    parser.add_argument("--test", action="store_true", help="active this flag to test the model")
+    parser.add_argument("--model_path", help="path to saved model")
     parser.add_argument("--data_dir", default=os.path.join(DATA_DIR, "dataset"), help="path to the SNLI dataset directory")
     parser.add_argument("--word2vec_path", default=os.path.join(DATA_DIR, "GoogleNews-vectors-negative300.bin"), help="path to the pretrained Word2Vect .bin file")
     parser.add_argument("--model_name", type=str, default="attention_lstm")
@@ -56,3 +58,6 @@ if __name__ == "__main__":
 
     if args.train:
         train(word2vec=word2vec, dataset=dataset, parameters=parameters)
+
+    if args.test:
+        test(word2vec=word2vec, dataset=dataset, parameters=parameters, loadpath=args.model_path)

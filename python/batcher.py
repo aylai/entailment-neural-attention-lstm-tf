@@ -23,7 +23,7 @@ class Batcher(object):
                 self._premises.append(self.preprocess(sequence=dataset["premises"][idx], sequence_length=sequence_length))
                 self._hypothesis.append(self.preprocess(sequence=dataset["hypothesis"][idx], sequence_length=sequence_length, is_delimiter=True))
                 self._targets.append(dataset["targets"][idx])
-                if len(self._targets) == batch_size or (i == (len(permutation) - 1) and epoch == (num_epochs - 1)):
+                if len(self._targets) == batch_size or (i == (len(permutation) - 1) and epoch == (num_epochs - 1)): #todo why does it have to be the last epoch?
                     batch = {
                                 "premises": self._premises,
                                 "hypothesis": self._hypothesis,
