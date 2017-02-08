@@ -265,8 +265,8 @@ def test(word2vec, dataset, parameters, loadpath):
         # saver = tf.train.Saver(max_to_keep=10)
         # summary_writer = tf.train.SummaryWriter(logdir)
         # tf.train.write_graph(sess.graph_def, modeldir, "graph.pb", as_text=False)
-        # loader = tf.train.Saver(tf.all_variables())
-        loader = tf.train.Saver(tf.global_variables())
+        loader = tf.train.Saver(tf.all_variables())
+        #loader = tf.train.Saver(tf.global_variables())
         loader.restore(sess, loadpath)
 
         # optimizer = tf.train.AdamOptimizer(learning_rate=parameters["learning_rate"], name="ADAM", beta1=0.9,
