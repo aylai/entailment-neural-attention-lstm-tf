@@ -146,8 +146,8 @@ def train(word2vec, dataset, parameters, prototype=False):
         train_split = "train"
         if prototype:
             train_split = "dev"
-        train_batches = batcher.batch_generator(dataset=dataset[train_split], num_epochs=parameters["num_epochs"], batch_size=parameters["batch_size"][train_split], sequence_length=parameters["sequence_length"])
-        num_step_by_epoch = int(math.ceil(len(dataset[train_split]["targets"]) / parameters["batch_size"][train_split]))
+        train_batches = batcher.batch_generator(dataset=dataset[train_split], num_epochs=parameters["num_epochs"], batch_size=parameters["batch_size"]["train"], sequence_length=parameters["sequence_length"])
+        num_step_by_epoch = int(math.ceil(len(dataset[train_split]["targets"]) / parameters["batch_size"]["train"]))
         for train_step, (train_batch, epoch) in enumerate(train_batches):
             feed_dict = {
                             premises_ph: np.transpose(train_batch["premises"], (1, 0, 2)),
