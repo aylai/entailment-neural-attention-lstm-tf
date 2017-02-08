@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser.add_argument("--test", action="store_true", help="active this flag to test the model")
     parser.add_argument("--model_path", help="path to saved model")
     parser.add_argument("--data_dir", default=os.path.join(DATA_DIR, "dataset"), help="path to the SNLI dataset directory")
-    parser.add_argument("--word2vec_path", default=os.path.join(DATA_DIR, "GoogleNews-vectors-negative300.bin"), help="path to the pretrained Word2Vect .bin file")
+    parser.add_argument("--word2vec_path", default="/home/aylai2/data/word2vec/GoogleNews-vectors-negative300.bin", help="path to the pretrained Word2Vect .bin file")
     parser.add_argument("--model_name", type=str, default="attention_lstm")
     parser.add_argument("--learning_rate", type=float, default=0.001)
     parser.add_argument("--weight_decay", type=float, default=0.)
