@@ -30,7 +30,7 @@ if __name__ == "__main__":
     parser.add_argument("--gpu", type=str, default="0", help="set gpu to '' to use CPU mode")
     parser.add_argument("--num_epochs", type=int, default=45)
     parser.add_argument("--embedding_dim", type=int, default=300, help="Word2Vec dimension")
-    parser.add_argument("--sequence_length", type=int, default=20, help="final length of each sequence (premise and hypothesis), padded with null-words if needed")
+    parser.add_argument("--sequence_length", type=int, default=80, help="final length of each sequence (premise and hypothesis), padded with null-words if needed")
     parser.add_argument("--num_units", type=int, default=100, help="LSTM output dimension (k in the original paper)")
     parser.add_argument("--prototype",action="store_true",help="activate this flag to train a small model with dev data")
     args = parser.parse_args()

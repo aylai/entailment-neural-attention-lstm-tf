@@ -107,7 +107,6 @@ def train(word2vec, dataset, parameters, prototype=False):
         projecter = _projecter.get_4Dweights(filter_height=1, filter_width=parameters["embedding_dim"], in_channels=1, out_channels=parameters["num_units"], name="projecter")
 
         #optimizer = tf.train.AdamOptimizer(learning_rate=parameters["learning_rate"], name="ADAM", beta1=0.9, beta2=0.999)
-        
         with tf.variable_scope(name_or_scope="premise"):
             premise = RNN(cell=LSTMCell, num_units=parameters["num_units"], embedding_dim=parameters["embedding_dim"], projecter=projecter, keep_prob=keep_prob_ph)
             premise.process(sequence=premises_ph)
