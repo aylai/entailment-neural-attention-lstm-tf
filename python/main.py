@@ -1,7 +1,7 @@
 import argparse
 import os
 from utils import load_data, train, test
-
+import time
 
 dirname, filename = os.path.split(os.path.abspath(__file__))
 GIT_DIR = "/".join(dirname.split("/")[:-1])
@@ -54,6 +54,8 @@ if __name__ == "__main__":
     for key, parameter in parameters.iteritems():
         print "{}: {}".format(key, parameter)
 
+    start = time.time()
+
     # MAIN
     word2vec, dataset = load_data(data_dir=args.data_dir, word2vec_path=args.word2vec_path)
 
@@ -65,3 +67,8 @@ if __name__ == "__main__":
 
     if args.test:
         test(word2vec=word2vec, dataset=dataset, parameters=parameters, loadpath=args.model_path)
+
+    end = time.time()
+    m, s = divmod(end, 60)
+    h, m = divmod(m, 60)
+    print "%d:%02d:%02d" % (h, m, s)

@@ -176,24 +176,8 @@ def train(word2vec, dataset, parameters, prototype=False):
                     print"\nDEV | loss={0:.2f}, accuracy={1:.2f}%   ".format(dev_loss, 100. * dev_accuracy)
                     print ""
                     dev_summary_writer.add_summary(summary_str, train_step)
-                # try again
-                dev_batches = batcher.batch_generator(dataset=dataset["dev"], num_epochs=1,
-                                                       batch_size=parameters["batch_size"]["dev"],
-                                                       sequence_length=parameters["sequence_length"])
-                for dev_step, (dev_batch, _) in enumerate(dev_batches):
-                    feed_dict = {
-                        premises_ph: np.transpose(dev_batch["premises"], (1, 0, 2)),
-                        hypothesis_ph: np.transpose(dev_batch["hypothesis"], (1, 0, 2)),
-                        targets_ph: dev_batch["targets"],
-                        keep_prob_ph: 1.,
-                    }
-                    summary_str, dev_loss, dev_accuracy = sess.run([dev_summary_op, loss, accuracy],
-                                                                     feed_dict=feed_dict)
-                    print"\nDEV | loss={0:.2f}, accuracy={1:.2f}%   ".format(dev_loss, 100. * dev_accuracy)
-                    print ""
                     if dev_accuracy > best_dev_accuracy:
                         saver.save(sess, save_path=savepath+'_best', global_step=train_step)
-                    #test_summary_writer.add_summary(summary_str, train_step)
             if train_step % 5000 == 0:
                 saver.save(sess, save_path=savepath, global_step=train_step)
         print ""
