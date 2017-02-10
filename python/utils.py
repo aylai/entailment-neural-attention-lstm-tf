@@ -148,6 +148,7 @@ def train(word2vec, dataset, parameters, prototype=False):
         train_batches = batcher.batch_generator(dataset=dataset[train_split], num_epochs=parameters["num_epochs"], batch_size=parameters["batch_size"]["train"], sequence_length=parameters["sequence_length"])
         print("train data size: %d" % len(dataset["train"]["targets"]))
         num_step_by_epoch = int(math.ceil(len(dataset[train_split]["targets"]) / parameters["batch_size"]["train"]))
+        best_dev_accuracy = 0
         for train_step, (train_batch, epoch) in enumerate(train_batches):
             feed_dict = {
                             premises_ph: np.transpose(train_batch["premises"], (1, 0, 2)),
@@ -190,10 +191,11 @@ def train(word2vec, dataset, parameters, prototype=False):
                                                                      feed_dict=feed_dict)
                     print"\nDEV | loss={0:.2f}, accuracy={1:.2f}%   ".format(dev_loss, 100. * dev_accuracy)
                     print ""
+                    if dev_accuracy > best_dev_accuracy:
+                        saver.save(sess, save_path=savepath+'_best', global_step=train_step)
                     #test_summary_writer.add_summary(summary_str, train_step)
             if train_step % 5000 == 0:
                 saver.save(sess, save_path=savepath, global_step=train_step)
-                print(savepath)
         print ""
 
 
