@@ -25,11 +25,12 @@ def clean_sequence_to_words(sequence):
             sequence.pop(i)
     return sequence
 
+
 def load_data(data_dir="/disk2/datasets/snli/snli_1.0/", word2vec_path="/disk2/datasets/word2vec/GoogleNews-vectors-negative300.bin"):
 
     print "\nLoading word2vec:"
     word2vec = {}
-    word2vec = Word2Vec.Word2Vec.load_word2vec_format(word2vec_path, binary=True)
+    #word2vec = Word2Vec.Word2Vec.load_word2vec_format(word2vec_path, binary=True)
     print "word2vec: done"
 
     dataset = {}
@@ -42,12 +43,14 @@ def load_data(data_dir="/disk2/datasets/snli/snli_1.0/", word2vec_path="/disk2/d
     print "dataset: done\n"
     return word2vec, tokenized_dataset
 
+
 def simple_preprocess(dataset, word2vec):
-    tokenized_dataset = dict((type_set, {"premises": [], "hypothesis": [], "targets": []}) for type_set in dataset)
+    tokenized_dataset = dict((type_set, {"premises": [], "hypothesis": [], "targets": [], "premise_lengths": [], "hyp_lengths": [], "labels": []}) for type_set in dataset)
     print "tokenization:"
     for type_set in dataset:
         print "type_set:", type_set
         map_targets = {"neutral": 0, "entailment": 1, "contradiction": 2}
+        target_list = ['neutral','entailment','contradiction']
         num_ids = len(dataset[type_set]["targets"])
         print "num_ids", num_ids
         for i in range(num_ids):
@@ -59,8 +62,13 @@ def simple_preprocess(dataset, word2vec):
                 pass
             else:
                 tokenized_dataset[type_set]["premises"].append(premises_tokens)
+                tokenized_dataset[type_set]["premise_lengths"].append(len(premises_tokens))
                 tokenized_dataset[type_set]["hypothesis"].append(hypothesis_tokens)
+                tokenized_dataset[type_set]["hyp_lengths"].append(len(hypothesis_tokens) + 1)
                 tokenized_dataset[type_set]["targets"].append(target)
+                L_temp = np.zeros(shape=[len(target_list)], dtype=np.float32)
+                L_temp[target] = 1
+                tokenized_dataset[type_set]["labels"].append(L_temp)
             sys.stdout.write("\rid: {}/{}      ".format(i + 1, num_ids))
             sys.stdout.flush()
         print ""
@@ -68,12 +76,11 @@ def simple_preprocess(dataset, word2vec):
     return tokenized_dataset
 
 
-
 from network import RNN, LSTMCell, AttentionLSTMCell
 from batcher import Batcher
 
 
-def train(word2vec, dataset, parameters, prototype=False):
+def train(word2vec, dataset, parameters):
     modeldir = os.path.join(parameters["runs_dir"], parameters["model_name"])
     if not os.path.exists(modeldir):
         os.mkdir(modeldir)
@@ -143,8 +150,6 @@ def train(word2vec, dataset, parameters, prototype=False):
 
         batcher = Batcher(word2vec=word2vec, settings=parameters["settings"])
         train_split = "train"
-        if prototype:
-            train_split = "dev"
         train_batches = batcher.batch_generator(dataset=dataset[train_split], num_epochs=parameters["num_epochs"], batch_size=parameters["batch_size"]["train"], sequence_length=parameters["sequence_length"])
         print("train data size: %d" % len(dataset["train"]["targets"]))
         num_step_by_epoch = int(math.ceil(len(dataset[train_split]["targets"]) / parameters["batch_size"]["train"]))
@@ -181,7 +186,6 @@ def train(word2vec, dataset, parameters, prototype=False):
             if train_step % 5000 == 0:
                 saver.save(sess, save_path=savepath, global_step=train_step)
         print ""
-
 
 def test(word2vec, dataset, parameters, loadpath):
 
