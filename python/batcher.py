@@ -31,7 +31,7 @@ class Batcher(object):
                 self._premise_lengths.append(dataset["premise_lengths"][idx])
                 self._hyp_lengths.append(dataset["hyp_lengths"][idx])
                 self._labels.append(dataset["labels"][idx])
-                if len(self._targets) == batch_size or (i == (len(permutation) - 1) and epoch == (num_epochs - 1)): #todo why does it have to be the last epoch?
+                if len(self._targets) == batch_size: # or (i == (len(permutation) - 1) and epoch == (num_epochs - 1)): #todo why does it have to be the last epoch?
                     batch = {
                                 "premises": self._premises,
                                 "hypothesis": self._hypothesis,
