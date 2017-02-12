@@ -30,7 +30,7 @@ def load_data(data_dir="/disk2/datasets/snli/snli_1.0/", word2vec_path="/disk2/d
 
     print "\nLoading word2vec:"
     word2vec = {}
-    #word2vec = Word2Vec.Word2Vec.load_word2vec_format(word2vec_path, binary=True)
+    word2vec = Word2Vec.Word2Vec.load_word2vec_format(word2vec_path, binary=True)
     print "word2vec: done"
 
     dataset = {}
