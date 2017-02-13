@@ -190,9 +190,10 @@ def train(word2vec, dataset, parameters):
         print ""
 
 def test(word2vec, dataset, parameters, loadpath):
-
+    print "1"
     device_string = "/gpu:{}".format(parameters["gpu"]) if parameters["gpu"] else "/cpu:0"
     with tf.device(device_string):
+        print "2"
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
         config_proto = tf.ConfigProto(allow_soft_placement=True, gpu_options=gpu_options)
 
@@ -232,6 +233,7 @@ def test(word2vec, dataset, parameters, loadpath):
                                                batch_size=parameters["batch_size"]["test"],
                                                sequence_length=parameters["sequence_length"])
         for test_step, (test_batch, _) in enumerate(test_batches):
+            print "3"
             feed_dict = {
                 premises_ph: np.transpose(test_batch["premises"], (1, 0, 2)),
                 hypothesis_ph: np.transpose(test_batch["hypothesis"], (1, 0, 2)),

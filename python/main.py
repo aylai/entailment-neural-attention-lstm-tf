@@ -75,6 +75,7 @@ if __name__ == "__main__":
             train(word2vec=word2vec, dataset=dataset, parameters=parameters)
 
         if args.test:
+            print "here"
             test(word2vec=word2vec, dataset=dataset, parameters=parameters, loadpath=args.model_path)
     elif args.model_type == "lstm":
         batcher = Batcher(word2vec=word2vec, settings=parameters)
