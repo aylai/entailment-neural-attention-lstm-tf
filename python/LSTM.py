@@ -99,7 +99,6 @@ class Model(object):
         total_loss = 0.0
         timestamp = time.time()
         for epoch in range(self.parameters["num_epochs"]):
-            print("new epoch %d" %epoch)
             train_batches = self.batcher.batch_generator(dataset=self.dataset["train"],
                                                          num_epochs=1,
                                                          batch_size=self.parameters["batch_size"]["train"],
