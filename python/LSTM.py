@@ -106,8 +106,10 @@ class Model(object):
             bar.start()
             for step, (train_batch, epoch) in enumerate(train_batches):
                 feed_dict = {
-                    self.premises_ph: np.transpose(train_batch["premises"], (1, 0, 2)),
-                    self.hypotheses_ph: np.transpose(train_batch["hypothesis"], (1, 0, 2)),
+                    #self.premises_ph: np.transpose(train_batch["premises"], (1, 0, 2)),
+                    #self.hypotheses_ph: np.transpose(train_batch["hypothesis"], (1, 0, 2)),
+                    self.premises_ph: train_batch["premises"],
+                    self.hypotheses_ph: train_batch["hypothesis"],
                     self.labels_ph: train_batch["labels"],
                     self.premise_lengths: train_batch["premise_lengths"],
                     self.hyp_lengths: train_batch["hyp_lengths"],
