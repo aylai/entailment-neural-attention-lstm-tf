@@ -155,23 +155,23 @@ class Model(object):
             #bar = progressbar.ProgressBar(maxval=steps / 10 + 1,
             #                              widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
             #bar.start()
-            for step, (train_batch, epoch) in enumerate(train_batches):
-                feed_dict = {
-                    #self.premises_ph: np.transpose(train_batch["premises"], (1, 0, 2)),
-                    #self.hypotheses_ph: np.transpose(train_batch["hypothesis"], (1, 0, 2)),
-                    self.premises_ph: train_batch["premises"],
-                    self.hypotheses_ph: train_batch["hypothesis"],
-                    self.labels_ph: train_batch["labels"],
-                    self.premise_lengths: train_batch["premise_lengths"],
-                    self.hyp_lengths: train_batch["hyp_lengths"],
-                }
-                _, summary_str, train_loss, train_pred = self.sess.run([self.train_op, self.train_cost_summary, self.loss, self.predictions],
-                                                                  feed_dict=feed_dict)
-                total_loss += train_loss
-                self.writer.add_summary(summary_str, step)
-                if step % 100 == 0:  # eval 1 random dev batch
-                    self._eval(self.dataset["dev"], "dev", True) # TODO change to false: one dev batch only
-                    #bar.update(step / 10 + 1)
+        for step, (train_batch, epoch) in enumerate(train_batches):
+            feed_dict = {
+                #self.premises_ph: np.transpose(train_batch["premises"], (1, 0, 2)),
+                #self.hypotheses_ph: np.transpose(train_batch["hypothesis"], (1, 0, 2)),
+                self.premises_ph: train_batch["premises"],
+                self.hypotheses_ph: train_batch["hypothesis"],
+                self.labels_ph: train_batch["labels"],
+                self.premise_lengths: train_batch["premise_lengths"],
+                self.hyp_lengths: train_batch["hyp_lengths"],
+            }
+            _, summary_str, train_loss, train_pred = self.sess.run([self.train_op, self.train_cost_summary, self.loss, self.predictions],
+                                                              feed_dict=feed_dict)
+            total_loss += train_loss
+            self.writer.add_summary(summary_str, step)
+            if step % 100 == 0:  # eval 1 random dev batch
+                self._eval(self.dataset["dev"], "dev", True) # TODO change to false: one dev batch only
+                #bar.update(step / 10 + 1)
             #bar.finish()
             if step % 5000 == 0:
                 dev_loss, dev_accuracy = self._eval(self.dataset["dev"], "dev", True)  # eval on full dev for printing (but not tensorboard)
@@ -182,7 +182,7 @@ class Model(object):
                 print("Iter %3d  Loss %-8.3f  Dev Acc %-6.2f  Time %-5.2f at %s" %
                       (epoch, total_loss, dev_accuracy,
                        (current_time - timestamp) / 60.0, str(datetime.datetime.now())))
-            #total_loss = 0.0
+                #total_loss = 0.0
 
     def _eval(self, eval_data, data_name, full):
         if full:
