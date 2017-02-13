@@ -124,7 +124,7 @@ class Model(object):
                 total_loss += train_loss
                 self.writer.add_summary(summary_str, step)
                 if step % 100 == 0:  # eval 1 random dev batch
-                    self._eval(self.dataset["dev"], "dev", True) # TODO change to false: one dev batch only
+                    self._eval(self.dataset["dev"], "dev", False) # TODO change to false: one dev batch only
                     bar.update(step / 10 + 1)
             bar.finish()
             dev_loss, dev_accuracy = self._eval(self.dataset["dev"], "dev", True)  # eval on full dev for printing (but not tensorboard)
@@ -140,11 +140,11 @@ class Model(object):
     def _eval(self, eval_data, data_name, full):
         if full:
             eval_batches = self.batcher.batch_generator(dataset=eval_data, num_epochs=1,
-                                               batch_size=self.parameters["batch_size"][data_name],
+                                               batch_size=len(eval_data["targets"]),
                                                sequence_length=self.parameters["sequence_length"])
         else:
             eval_batches = self.batcher.batch_generator(dataset=eval_data, num_epochs=1,
-                                                      batch_size=len(eval_data["targets"]),
+                                                      batch_size=self.parameters["batch_size"][data_name],
                                                       sequence_length=self.parameters["sequence_length"])
         for step, (eval_batch, epoch) in enumerate(eval_batches):
             feed_dict = {
@@ -170,4 +170,4 @@ class Model(object):
 
     def test(self, split):
         test_loss, test_accuracy = self._eval(self.dataset[split], split, True)
-        print("Loss %-8.3f  Test Acc %-6.2f" % (test_loss, test_accuracy))
+        print("Loss %-8.3f  %s Acc %-6.2f" % (test_loss, split, test_accuracy))
