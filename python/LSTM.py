@@ -93,7 +93,7 @@ class Model(object):
         logits3 = tf.nn.tanh(tf.matmul(logits2, output_layer3) + output_bias3)
         return logits3
 
-    def train_old(self):
+    def train(self):
         print("train data size: %d" % len(self.dataset["train"]["targets"]))
         best_dev_accuracy = 0.0
         total_loss = 0.0
@@ -138,7 +138,7 @@ class Model(object):
                    (current_time - timestamp) / 60.0, str(datetime.datetime.now())))
             total_loss = 0.0
 
-    def train(self):
+    def train_new(self):
         print("train data size: %d" % len(self.dataset["train"]["targets"]))
         best_dev_accuracy = 0.0
         total_loss = 0.0
