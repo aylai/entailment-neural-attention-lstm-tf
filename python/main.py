@@ -20,6 +20,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--train", action="store_true", help="active this flag to train the model")
     parser.add_argument("--test", action="store_true", help="active this flag to test the model")
+    parser.add_argument("--test_split", default="test", help="data split to evaluate")
     parser.add_argument("--model_path", help="path to saved model")
     parser.add_argument("--data_dir", default=os.path.join(DATA_DIR, "dataset"), help="path to the SNLI dataset directory")
     parser.add_argument("--word2vec_path", default="/home/aylai2/data/word2vec/GoogleNews-vectors-negative300.bin", help="path to the pretrained Word2Vect .bin file")
@@ -85,7 +86,7 @@ if __name__ == "__main__":
             model.train()
         if args.test:
             model = LSTM.Model(batcher, dataset, parameters, load_model=args.model_path)
-            model.test()
+            model.test(args.test_split)
 
 
     end = time.time() - start

@@ -165,8 +165,9 @@ class Model(object):
 
     def _accuracy(self, labels, predictions):
         correct_pred = np.equal(predictions, labels)
+        print len(correct_pred)
         return 100.0 * sum(correct_pred) / len(correct_pred)
 
-    def test(self):
-        test_loss, test_accuracy = self._eval(self.dataset["test"], "test", True)
+    def test(self, split):
+        test_loss, test_accuracy = self._eval(self.dataset[split], split, True)
         print("Loss %-8.3f  Test Acc %-6.2f" % (test_loss, test_accuracy))
