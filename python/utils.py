@@ -225,13 +225,14 @@ def test(word2vec, dataset, parameters, loadpath):
 
         loss, loss_summary, accuracy, accuracy_summary = hypothesis.loss(targets=targets_ph)
 
-        loader = tf.train.Saver(tf.all_variables())
+        loader = tf.train.Saver()
         loader.restore(sess, loadpath)
 
         batcher = Batcher(word2vec=word2vec, settings=parameters)
         test_batches = batcher.batch_generator(dataset=dataset["test"], num_epochs=1,
                                                batch_size=parameters["batch_size"]["test"],
                                                sequence_length=parameters["sequence_length"])
+        print "2.5"
         for test_step, (test_batch, _) in enumerate(test_batches):
             print "3"
             feed_dict = {
