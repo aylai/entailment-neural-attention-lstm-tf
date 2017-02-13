@@ -17,12 +17,18 @@ class Model(object):
         """ Model Definition """
         self.premise_lengths = tf.placeholder(tf.int32, shape=[None], name="premise_lengths")
         self.hyp_lengths = tf.placeholder(tf.int32, shape=[None], name="hypothesis_lengths")
+        # self.premises_ph = tf.placeholder(tf.float32,
+        #                              shape=[parameters["sequence_length"], None, parameters["embedding_dim"]],
+        #                              name="premises")
+        # self.hypotheses_ph = tf.placeholder(tf.float32,
+        #                                shape=[parameters["sequence_length"], None, parameters["embedding_dim"]],
+        #                                name="hypothesis")
         self.premises_ph = tf.placeholder(tf.float32,
-                                     shape=[parameters["sequence_length"], None, parameters["embedding_dim"]],
-                                     name="premises")
+                                          shape=[None, parameters["sequence_length"], parameters["embedding_dim"]],
+                                          name="premises")
         self.hypotheses_ph = tf.placeholder(tf.float32,
-                                       shape=[parameters["sequence_length"], None, parameters["embedding_dim"]],
-                                       name="hypothesis")
+                                            shape=[None, parameters["sequence_length"], parameters["embedding_dim"]],
+                                            name="hypothesis")
         self.labels_ph = tf.placeholder(tf.int32, shape=[None, parameters["num_classes"]], name="labels")
 
         sentence_pair = self.sentence_pair_rep()
@@ -93,7 +99,7 @@ class Model(object):
         total_loss = 0.0
         timestamp = time.time()
         for epoch in range(self.parameters["num_epochs"]):
-
+            print("new epoch %d" %epoch)
             train_batches = self.batcher.batch_generator(dataset=self.dataset["train"],
                                                          num_epochs=1,
                                                          batch_size=self.parameters["batch_size"]["train"],
@@ -143,8 +149,10 @@ class Model(object):
                                                       sequence_length=self.parameters["sequence_length"])
         for step, (eval_batch, epoch) in enumerate(eval_batches):
             feed_dict = {
-                self.premises_ph: np.transpose(eval_batch["premises"], (1, 0, 2)),
-                self.hypotheses_ph: np.transpose(eval_batch["hypothesis"], (1, 0, 2)),
+                #self.premises_ph: np.transpose(eval_batch["premises"], (1, 0, 2)),
+                #self.hypotheses_ph: np.transpose(eval_batch["hypothesis"], (1, 0, 2)),
+                self.premises_ph: eval_batch["premises"],
+                self.hypotheses_ph: eval_batch["hypothesis"],
                 self.labels_ph: eval_batch["labels"],
                 self.premise_lengths: eval_batch["premise_lengths"],
                 self.hyp_lengths: eval_batch["hyp_lengths"],

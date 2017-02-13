@@ -18,7 +18,8 @@ class Batcher(object):
         #     self._out_of_voc_embedding = np.random.rand(self._embedding_dim)
         self._embedding_dim = settings["embedding_dim"]
         self._out_of_voc_embedding = np.random.rand(self._embedding_dim)
-        self._delimiter = self._word2vec["_"]
+        #self._delimiter = self._word2vec["_"]
+        self._delimiter = np.random.rand(self._embedding_dim)
 
     def batch_generator(self, dataset, num_epochs, batch_size, sequence_length):
         ids = range(len(dataset["targets"]))
