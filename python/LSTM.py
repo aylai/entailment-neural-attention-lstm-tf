@@ -110,7 +110,7 @@ class Model(object):
             bar = progressbar.ProgressBar(maxval=steps / 10 + 1,
                                           widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
             bar.start()
-            for step, (train_batch, epoch) in enumerate(train_batches):
+            for step, (train_batch, train_epoch) in enumerate(train_batches):
                 feed_dict = {
                     #self.premises_ph: np.transpose(train_batch["premises"], (1, 0, 2)),
                     #self.hypotheses_ph: np.transpose(train_batch["hypothesis"], (1, 0, 2)),

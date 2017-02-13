@@ -150,7 +150,7 @@ def train(word2vec, dataset, parameters):
         sess.run(tf.initialize_all_variables())
         #sess.run(tf.global_variables_initializer())
 
-        batcher = Batcher(word2vec=word2vec, settings=parameters["settings"])
+        batcher = Batcher(word2vec=word2vec, settings=parameters)
         train_split = "train"
         train_batches = batcher.batch_generator(dataset=dataset[train_split], num_epochs=parameters["num_epochs"], batch_size=parameters["batch_size"]["train"], sequence_length=parameters["sequence_length"])
         print("train data size: %d" % len(dataset["train"]["targets"]))
@@ -227,7 +227,7 @@ def test(word2vec, dataset, parameters, loadpath):
         loader = tf.train.Saver(tf.all_variables())
         loader.restore(sess, loadpath)
 
-        batcher = Batcher(word2vec=word2vec, settings=parameters["settings"])
+        batcher = Batcher(word2vec=word2vec, settings=parameters)
         test_batches = batcher.batch_generator(dataset=dataset["test"], num_epochs=1,
                                                batch_size=parameters["batch_size"]["test"],
                                                sequence_length=parameters["sequence_length"])
