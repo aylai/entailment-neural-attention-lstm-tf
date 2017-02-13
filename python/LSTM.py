@@ -93,7 +93,7 @@ class Model(object):
         logits3 = tf.nn.tanh(tf.matmul(logits2, output_layer3) + output_bias3)
         return logits3
 
-    def train(self):
+    def train_old(self):
         print("train data size: %d" % len(self.dataset["train"]["targets"]))
         best_dev_accuracy = 0.0
         total_loss = 0.0
@@ -125,10 +125,10 @@ class Model(object):
                 total_loss += train_loss
                 self.writer.add_summary(summary_str, step)
                 if step % 100 == 0:  # eval 1 random dev batch
-                    self._eval(self.dataset["dev"], "dev", epoch * steps + step, True) # TODO change to false: one dev batch only
+                    self._eval(self.dataset["dev"], "dev", True) # TODO change to false: one dev batch only
                     bar.update(step / 10 + 1)
             bar.finish()
-            dev_loss, dev_accuracy = self._eval(self.dataset["dev"], "dev", epoch * steps, True)  # eval on full dev for printing (but not tensorboard)
+            dev_loss, dev_accuracy = self._eval(self.dataset["dev"], "dev", True)  # eval on full dev for printing (but not tensorboard)
             if dev_accuracy > best_dev_accuracy:
                 self.saver.save(self.sess, save_path=self.savepath + '_best', global_step=step)
             self.saver.save(self.sess, save_path=self.savepath, global_step=step)
@@ -138,7 +138,53 @@ class Model(object):
                    (current_time - timestamp) / 60.0, str(datetime.datetime.now())))
             total_loss = 0.0
 
-    def _eval(self, eval_data, data_name, step, full):
+    def train(self):
+        print("train data size: %d" % len(self.dataset["train"]["targets"]))
+        best_dev_accuracy = 0.0
+        total_loss = 0.0
+        timestamp = time.time()
+        #for epoch in range(self.parameters["num_epochs"]):
+         #   print("new epoch %d" %epoch)
+        train_batches = self.batcher.batch_generator(dataset=self.dataset["train"],
+                                                         num_epochs=self.parameters["num_epochs"],
+                                                         batch_size=self.parameters["batch_size"]["train"],
+                                                         sequence_length=self.parameters["sequence_length"])
+            #steps = len(self.dataset["train"]["targets"]) / self.parameters["batch_size"]["train"]
+
+            # progress bar http://stackoverflow.com/a/3002114
+            #bar = progressbar.ProgressBar(maxval=steps / 10 + 1,
+            #                              widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+            #bar.start()
+            for step, (train_batch, epoch) in enumerate(train_batches):
+                feed_dict = {
+                    #self.premises_ph: np.transpose(train_batch["premises"], (1, 0, 2)),
+                    #self.hypotheses_ph: np.transpose(train_batch["hypothesis"], (1, 0, 2)),
+                    self.premises_ph: train_batch["premises"],
+                    self.hypotheses_ph: train_batch["hypothesis"],
+                    self.labels_ph: train_batch["labels"],
+                    self.premise_lengths: train_batch["premise_lengths"],
+                    self.hyp_lengths: train_batch["hyp_lengths"],
+                }
+                _, summary_str, train_loss, train_pred = self.sess.run([self.train_op, self.train_cost_summary, self.loss, self.predictions],
+                                                                  feed_dict=feed_dict)
+                total_loss += train_loss
+                self.writer.add_summary(summary_str, step)
+                if step % 100 == 0:  # eval 1 random dev batch
+                    self._eval(self.dataset["dev"], "dev", True) # TODO change to false: one dev batch only
+                    #bar.update(step / 10 + 1)
+            #bar.finish()
+            if step % 5000 == 0:
+                dev_loss, dev_accuracy = self._eval(self.dataset["dev"], "dev", True)  # eval on full dev for printing (but not tensorboard)
+                if dev_accuracy > best_dev_accuracy:
+                    self.saver.save(self.sess, save_path=self.savepath + '_best', global_step=step)
+                self.saver.save(self.sess, save_path=self.savepath, global_step=step)
+                current_time = time.time()
+                print("Iter %3d  Loss %-8.3f  Dev Acc %-6.2f  Time %-5.2f at %s" %
+                      (epoch, total_loss, dev_accuracy,
+                       (current_time - timestamp) / 60.0, str(datetime.datetime.now())))
+            #total_loss = 0.0
+
+    def _eval(self, eval_data, data_name, full):
         if full:
             eval_batches = self.batcher.batch_generator(dataset=eval_data, num_epochs=1,
                                                batch_size=self.parameters["batch_size"][data_name],
