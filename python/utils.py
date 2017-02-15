@@ -185,6 +185,7 @@ def train(word2vec, dataset, parameters):
                     dev_summary_writer.add_summary(summary_str, train_step)
                     if dev_accuracy > best_dev_accuracy:
                         saver.save(sess, save_path=savepath+'_best', global_step=train_step)
+                    break
             if train_step % 5000 == 0:
                 saver.save(sess, save_path=savepath, global_step=train_step)
         print ""
