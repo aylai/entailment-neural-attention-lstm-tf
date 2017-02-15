@@ -6,7 +6,9 @@ import os
 import sys
 import math
 from network import TensorFlowTrainable
-
+import progressbar
+import time
+import datetime
 
 # tokenize punctuation (separate from words with whitespace)
 def clean_sequence_to_words(sequence):
@@ -30,7 +32,7 @@ def load_data(data_dir="/disk2/datasets/snli/snli_1.0/", word2vec_path="/disk2/d
 
     print "\nLoading word2vec:"
     word2vec = {}
-    word2vec = Word2Vec.Word2Vec.load_word2vec_format(word2vec_path, binary=True)
+    #word2vec = Word2Vec.Word2Vec.load_word2vec_format(word2vec_path, binary=True)
     if not word2vec:
         print "*******\n******\n*******\nWORD2VEC NOT LOADED\n*******\n*******\n*******"
     print "word2vec: done"
@@ -82,7 +84,7 @@ from network import RNN, LSTMCell, AttentionLSTMCell
 from batcher import Batcher
 
 
-def train(word2vec, dataset, parameters):
+def train_old(word2vec, dataset, parameters):
     modeldir = os.path.join(parameters["runs_dir"], parameters["model_name"])
     if not os.path.exists(modeldir):
         os.mkdir(modeldir)
@@ -188,6 +190,165 @@ def train(word2vec, dataset, parameters):
                     break
             if train_step % 5000 == 0:
                 saver.save(sess, save_path=savepath, global_step=train_step)
+        print ""
+
+
+def train(word2vec, dataset, parameters):
+    modeldir = os.path.join(parameters["runs_dir"], parameters["model_name"])
+    if not os.path.exists(modeldir):
+        os.mkdir(modeldir)
+    logdir = os.path.join(modeldir, "log")
+    if not os.path.exists(logdir):
+        os.mkdir(logdir)
+    logdir_train = os.path.join(logdir, "train")
+    if not os.path.exists(logdir_train):
+        os.mkdir(logdir_train)
+    logdir_test = os.path.join(logdir, "test")
+    if not os.path.exists(logdir_test):
+        os.mkdir(logdir_test)
+    logdir_dev = os.path.join(logdir, "dev")
+    if not os.path.exists(logdir_dev):
+        os.mkdir(logdir_dev)
+    savepath = os.path.join(modeldir, "save")
+
+    device_string = "/gpu:{}".format(parameters["gpu"]) if parameters["gpu"] else "/cpu:0"
+    with tf.device(device_string):
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
+        config_proto = tf.ConfigProto(allow_soft_placement=True, gpu_options=gpu_options)
+
+        sess = tf.Session(config=config_proto)
+
+        premises_ph = tf.placeholder(tf.float32,
+                                     shape=[parameters["sequence_length"], None, parameters["embedding_dim"]],
+                                     name="premises")
+        hypothesis_ph = tf.placeholder(tf.float32,
+                                       shape=[parameters["sequence_length"], None, parameters["embedding_dim"]],
+                                       name="hypothesis")
+        targets_ph = tf.placeholder(tf.int32, shape=[None], name="targets")
+        keep_prob_ph = tf.placeholder(tf.float32, name="keep_prob")
+
+        _projecter = TensorFlowTrainable()
+        projecter = _projecter.get_4Dweights(filter_height=1, filter_width=parameters["embedding_dim"], in_channels=1,
+                                             out_channels=parameters["num_units"], name="projecter")
+
+        # optimizer = tf.train.AdamOptimizer(learning_rate=parameters["learning_rate"], name="ADAM", beta1=0.9, beta2=0.999)
+        with tf.variable_scope(name_or_scope="premise"):
+            premise = RNN(cell=LSTMCell, num_units=parameters["num_units"], embedding_dim=parameters["embedding_dim"],
+                          projecter=projecter, keep_prob=keep_prob_ph)
+            premise.process(sequence=premises_ph)
+
+        with tf.variable_scope(name_or_scope="hypothesis"):
+            hypothesis = RNN(cell=AttentionLSTMCell, num_units=parameters["num_units"],
+                             embedding_dim=parameters["embedding_dim"], hiddens=premise.hiddens, states=premise.states,
+                             projecter=projecter, keep_prob=keep_prob_ph)
+            hypothesis.process(sequence=hypothesis_ph)
+
+        loss, loss_summary, accuracy, accuracy_summary = hypothesis.loss(targets=targets_ph)
+
+        weight_decay = tf.reduce_sum(
+            [tf.reduce_sum(parameter) for parameter in premise.parameters + hypothesis.parameters])
+
+        global_loss = loss + parameters["weight_decay"] * weight_decay
+
+        train_summary_op = tf.merge_summary([loss_summary, accuracy_summary])
+        # train_summary_op = tf.summary.merge([loss_summary, accuracy_summary])
+        train_summary_writer = tf.train.SummaryWriter(logdir_train, sess.graph)
+        # train_summary_writer = tf.summary.FileWriter(logdir_train, sess.graph)
+        # test_summary_op = tf.merge_summary([loss_summary, accuracy_summary])
+        dev_summary_op = tf.merge_summary([loss_summary, accuracy_summary])
+        # test_summary_writer = tf.train.SummaryWriter(logdir_test)
+        dev_summary_writer = tf.train.SummaryWriter(logdir_dev)
+
+        saver = tf.train.Saver(max_to_keep=10)
+        # summary_writer = tf.train.SummaryWriter(logdir)
+        tf.train.write_graph(sess.graph_def, modeldir, "graph.pb", as_text=False)
+
+        optimizer = tf.train.AdamOptimizer(learning_rate=parameters["learning_rate"], name="ADAM", beta1=0.9,
+                                           beta2=0.999)
+        train_op = optimizer.minimize(global_loss)
+
+        sess.run(tf.initialize_all_variables())
+        # sess.run(tf.global_variables_initializer())
+
+        batcher = Batcher(word2vec=word2vec, settings=parameters)
+        #train_split = "train"
+        #train_batches = batcher.batch_generator(dataset=dataset[train_split], num_epochs=parameters["num_epochs"],
+                                               # batch_size=parameters["batch_size"]["train"],
+                                               # sequence_length=parameters["sequence_length"])
+        #print("train data size: %d" % len(dataset["train"]["targets"]))
+        #num_step_by_epoch = int(math.ceil(len(dataset[train_split]["targets"]) / parameters["batch_size"]["train"]))
+        #best_dev_accuracy = 0
+        print("train data size: %d" % len(dataset["train"]["targets"]))
+        best_dev_accuracy = 0.0
+        total_loss = 0.0
+        timestamp = time.time()
+        for epoch in range(parameters["num_epochs"]):
+            print("epoch %d" % epoch)
+            train_batches = batcher.batch_generator(dataset=dataset["train"],
+                                                         num_epochs=1,
+                                                         batch_size=parameters["batch_size"]["train"],
+                                                         sequence_length=parameters["sequence_length"])
+            steps = len(dataset["train"]["targets"]) / parameters["batch_size"]["train"]
+
+            # progress bar http://stackoverflow.com/a/3002114
+            bar = progressbar.ProgressBar(maxval=steps / 10 + 1,
+                                          widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+            bar.start()
+            for step, (train_batch, train_epoch) in enumerate(train_batches):
+                feed_dict = {
+                    premises_ph: np.transpose(train_batch["premises"], (1, 0, 2)),
+                    hypothesis_ph: np.transpose(train_batch["hypothesis"], (1, 0, 2)),
+                    targets_ph: train_batch["targets"],
+                    keep_prob_ph: parameters["keep_prob"],
+                }
+                _, summary_str, train_loss, train_accuracy = sess.run([train_op, train_summary_op, loss, accuracy],
+                                                                      feed_dict=feed_dict)
+                total_loss += train_loss
+                train_summary_writer.add_summary(summary_str, step)
+                if step % 100 == 0:  # eval 1 random dev batch
+                    # eval 1 random dev batch
+                    dev_batches = batcher.batch_generator(dataset=dataset["dev"], num_epochs=1,
+                                                          batch_size=parameters["batch_size"]["dev"],
+                                                          sequence_length=parameters["sequence_length"])
+                    for dev_step, (dev_batch, _) in enumerate(dev_batches):
+                        feed_dict = {
+                            premises_ph: np.transpose(dev_batch["premises"], (1, 0, 2)),
+                            hypothesis_ph: np.transpose(dev_batch["hypothesis"], (1, 0, 2)),
+                            targets_ph: dev_batch["targets"],
+                            keep_prob_ph: 1.,
+                        }
+
+                        summary_str, dev_loss, dev_accuracy = sess.run([dev_summary_op, loss, accuracy],
+                                                                       feed_dict=feed_dict)
+                        dev_summary_writer.add_summary(summary_str, step)
+                        break
+                    bar.update(step / 10 + 1)
+            bar.finish()
+            # eval on all dev
+            dev_batches = batcher.batch_generator(dataset=dataset["dev"], num_epochs=1,
+                                                  batch_size=len(dataset["dev"]["targets"]),
+                                                  sequence_length=parameters["sequence_length"])
+            dev_accuracy = 0
+            for dev_step, (dev_batch, _) in enumerate(dev_batches):
+                feed_dict = {
+                    premises_ph: np.transpose(dev_batch["premises"], (1, 0, 2)),
+                    hypothesis_ph: np.transpose(dev_batch["hypothesis"], (1, 0, 2)),
+                    targets_ph: dev_batch["targets"],
+                    keep_prob_ph: 1.,
+                }
+                summary_str, dev_loss, dev_accuracy = sess.run([dev_summary_op, loss, accuracy],
+                                                               feed_dict=feed_dict)
+                print"\nDEV full | loss={0:.2f}, accuracy={1:.2f}%   ".format(dev_loss, 100. * dev_accuracy)
+                print ""
+                if dev_accuracy > best_dev_accuracy:
+                    saver.save(sess, save_path=savepath + '_best', global_step=(epoch+1)*steps)
+                break
+            saver.save(sess, save_path=savepath, global_step=(epoch+1)*steps)
+            current_time = time.time()
+            print("Iter %3d  Loss %-8.3f  Dev Acc %-6.2f  Time %-5.2f at %s" %
+                  (epoch, total_loss, dev_accuracy,
+                   (current_time - timestamp) / 60.0, str(datetime.datetime.now())))
+            total_loss = 0.0
         print ""
 
 def test(word2vec, dataset, parameters, loadpath):
