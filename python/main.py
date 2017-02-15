@@ -36,7 +36,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_epochs", type=int, default=20)
     parser.add_argument("--num_classes", type=int, default=3)
     parser.add_argument("--embedding_dim", type=int, default=300, help="Word2Vec dimension")
-    parser.add_argument("--sequence_length", type=int, default=30, help="final length of each sequence (premise and hypothesis), padded with null-words if needed")
+    parser.add_argument("--sequence_length", type=int, default=20, help="final length of each sequence (premise and hypothesis), padded with null-words if needed")
     parser.add_argument("--num_units", type=int, default=100, help="LSTM output dimension (k in the original paper)")
     parser.add_argument("--output_dim", type=int, default=200, help="output dimension of ff layers for LSTM (Bowman)")
     args = parser.parse_args()
